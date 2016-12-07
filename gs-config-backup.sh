@@ -1,6 +1,5 @@
 #! /bin/bash
 
-
 # This script will backup network and Linux configuration in preparation for
 # GRIDSCaler 4.0 upgrade/reinstall.
 # This script is meant to run on each GRIDSCaler server.
