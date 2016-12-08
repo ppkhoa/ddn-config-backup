@@ -8,6 +8,8 @@
 
 # For support/feedback with the script, contact Khoa Pham (kpham@ddn.com) or Ed Stack (estack@ddn.com).
 
+# Version 3.0.1 (KP):
+#	Removed restore archive placement requirements.
 # Version 3.0 (KP): 
 #	Added SSH Key scan
 #	Added host keys backup/restore (could pose security risk, might need to be reconsidered)
@@ -160,9 +162,10 @@ function backup {
 #
 
 function restore {
-	local restore_file=$1
+	local restore_path=$1
+	local restore_file=$(basename $1)
 	local hostname_restore=$(echo "$restore_file" | awk '{split($0,a,"-backup-\\w{1,}.gz"); print a[1]}')  # Extract hostnames from restore archive, assuming filename hasn't changed
-	cp $restore_file /
+	cp $restore_path /
 	echo -e "${YELLOW}Creating recovery archive, just in case...${ORANGE}"
 	mkdir /root/.ssh.ddnbak 
 	cp -r  /root/.ssh/* /root/.ssh.ddnbak
@@ -191,7 +194,7 @@ function restore {
 	cp -r  /etc/sysconfig/network  /etc/sysconfig/network.ddnbak
 	
 	echo -e "${YELLOW}Restoring configuration...${NC}"
-	tar -C / -xzvf $restore_file
+	tar -C / -xzvf $restore_path
 	echo -e "${YELLOW}Setting hostname...${NC}"
 	(set -x; hostnamectl set-hostname $hostname_restore) #set -x to print command
 	echo -e "${YELLOW}Fixing host keys permissions...${NC}"
