@@ -151,7 +151,7 @@ function backup {
 	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$backup_dir.gz"
 	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$doc_only.gz${NC}"
 	printf "\nIf you received any cp error, make sure the file exist and/or affected services are configured.\n\n"
-	printf "To restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r $nodename-backup-$start_time.gz\"\n${NC}(script and archive must in the same non-root folder)\n"
+	printf "To restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r <path-to-file>/$nodename-backup-$start_time.gz\"\n${NC}"
 	echo -e "${ORANGE}Remember to copy this file to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
 	echo -e "${ORANGE}Do not change the filename since the restore script depends on it.${NC}"
 }
