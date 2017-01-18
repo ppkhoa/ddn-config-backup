@@ -8,6 +8,12 @@
 
 # For support/feedback with the script, contact Khoa Pham (kpham@ddn.com) or Ed Stack (estack@ddn.com).
 
+# Version 3.0.2 (KP):
+#	Removed redundant commands
+#	Replaced cp operation with rsync for GPFS configuration backup and exclude AFM mount (Issue #1)
+#	Fixed SSH key restore, now with proper permissions (Issue #2)
+#	Included SSH key hosts scan in restore operation
+#	Fixed GPFS restore creating extra folders
 # Version 3.0.1 (KP):
 #	Removed restore archive placement requirements.
 # Version 3.0 (KP): 
@@ -78,7 +84,7 @@ function backup {
 
 	# GPFS config
 	echo -e "${YELLOW}Backing up GPFS configuration...${NC}"
-	cp -r --parents /var/mmfs $backup_dir
+	rsync -av /var/mmfs $backup_dir/var --exclude afm
 
 	# Linux and network config
 	echo -e "${YELLOW}Backing up network configurations...${NC}"
@@ -165,7 +171,6 @@ function restore {
 	local restore_path=$1
 	local restore_file=$(basename $1)
 	local hostname_restore=$(echo "$restore_file" | awk '{split($0,a,"-backup-\\w{1,}.gz"); print a[1]}')  # Extract hostnames from restore archive, assuming filename hasn't changed
-	cp $restore_path /
 	echo -e "${YELLOW}Creating recovery archive, just in case...${ORANGE}"
 	mkdir /root/.ssh.ddnbak 
 	cp -r  /root/.ssh/* /root/.ssh.ddnbak
@@ -173,8 +178,7 @@ function restore {
 	cp -r /etc/ssh /etc/ssh.ddnbak
 	
 	# GPFS config
-	mkdir /var/mmfs.ddnbak
-	cp -r --parents  /var/mmfs/* /var/mmfs.ddnbak
+	cp -r /var/mmfs /var/mmfs.ddnbak
 	
 	# Linux and network config
 	cp  /etc/networks /etc/networks.ddnbak
@@ -198,7 +202,9 @@ function restore {
 	echo -e "${YELLOW}Setting hostname...${NC}"
 	(set -x; hostnamectl set-hostname $hostname_restore) #set -x to print command
 	echo -e "${YELLOW}Fixing host keys permissions...${NC}"
-	chmod 700 /etc/ssh/ssh_host_*
+	chmod 600 /etc/ssh/ssh_host_*
+	echo -e "${YELLOW}Performing hosts scan...${NC}"
+	sshkeyscan
 	#rc=${status: -1} # Get the exit code for untar process
 	#if [ $rc -ne 0 ] # If fails, do not continue and exit with error code 1 to prevent damage to filesystem
 	#then
@@ -206,7 +212,6 @@ function restore {
 	#	exit 1;
 	#fi
 	printf "${YELLOW}Cleaning up...\n${NC}"
-	rm -rf /$restore_file # If user used * as the file name, the script shouldn't reach this point
 	echo -e "${GREEN}Reboot the node to apply the settings.${NC}"
 	printf "\nIf you received any mv error, check the source "
 	printf "to confirm it exist and make sure you only run the restore once.\n\n"
