@@ -1,13 +1,17 @@
 #! /bin/bash
 
 # This script will backup network and Linux configuration in preparation for
-# GRIDSCaler 4.0 upgrade/reinstall.
-# This script is meant to run on each GRIDSCaler server.
+# GRIDScaler 4.0 upgrade/reinstall.
+# This script is meant to run on each GRIDScaler server.
 # The current version of the script supports the standard GS installation, 
 # it does not back up configurations for applications not included with original GS installation.
 
 # For support/feedback with the script, contact Khoa Pham (kpham@ddn.com) or Ed Stack (estack@ddn.com).
 
+# Version 3.0.3 (KP):
+#	Added timezone settings conversion RHEL6 -> 7, should set correct timezone after restore.
+#	Added more description for SSH key scan
+#	Prepping for some major changes.
 # Version 3.0.2 (KP):
 #	Removed redundant commands
 #	Replaced cp operation with rsync for GPFS configuration backup and exclude AFM mount (Issue #1)
@@ -57,8 +61,10 @@ nodename=$(hostname)
 # Create backup temporary directory current system time and hostname
 #
 start_time=$(date +%Y%m%d%H%M%S)
-backup_dir="/tmp/$nodename-backup-$start_time"
+gsbackup_dir="/tmp/$nodename-gsbackup-$start_time"
 doc_only="/tmp/$nodename-doconly-$start_time"
+esbackup_dir="/tmp/$nodename-esbackup-$start_time"
+
 ext="gz"
 
 ###############################################################################
@@ -75,38 +81,61 @@ NC='\033[0m'
 #
 # Backup configurations (to be restored)
 #
-function backup {
+function gs_backup {
+	dir=$(pwd)
 	# Create folders for backup
-	mkdir $backup_dir $doc_only
+	mkdir $gsbackup_dir $doc_only
 	# SSH Keys
 	echo -e "${YELLOW}Backing up SSH key...${NC}"
-	cp -r --parents /root/.ssh/* $backup_dir
-	cp -r --parents /etc/ssh/* $backup_dir
+	cp -r --parents /root/.ssh/* $gsbackup_dir
+	cp -r --parents /etc/ssh/* $gsbackup_dir
 
 	# GPFS config
 	echo -e "${YELLOW}Backing up GPFS configuration...${NC}"
-	rsync -av /var/mmfs $backup_dir/var --exclude afm
+	rsync -av /var/mmfs $gsbackup_dir/var --exclude afm
 
 	# Linux and network config
 	echo -e "${YELLOW}Backing up network configurations...${NC}"
-	cp -r --parents /etc/networks $backup_dir
-	cp -r --parents /etc/resolv.conf  $backup_dir
-	cp -r --parents /etc/ntp.conf  $backup_dir
-	cp -r --parents /etc/iproute2/rt_tables  $backup_dir
+	cp -r --parents /etc/networks $gsbackup_dir
+	cp -r --parents /etc/resolv.conf  $gsbackup_dir
+	cp -r --parents /etc/ntp.conf  $gsbackup_dir
+	cp -r --parents /etc/iproute2/rt_tables  $gsbackup_dir
 
 	# Hosts file
 	echo -e "${YELLOW}Backing up hosts file...${NC}"
-	cp -r --parents /etc/hosts $backup_dir
+	cp -r --parents /etc/hosts $gsbackup_dir
 
 	# DDN config files
 	echo -e "${YELLOW}Backing up DDN config...${NC}"
-	cp -r --parents /etc/ddn/*.conf $backup_dir
+	cp -r --parents /etc/ddn/*.conf $gsbackup_dir
 
 	# Generic Linux config
 	echo -e "${YELLOW}Backing up Linux config...${NC}"
-	cp -r --parents /etc/sysconfig/clock $backup_dir
-	cp -r --parents /etc/sysconfig/network  $backup_dir
+	cp -r --parents /etc/sysconfig/clock $gsbackup_dir
+	cp -r --parents /etc/sysconfig/network  $gsbackup_dir
+	document
+	# Once finished, pack all files into one archive then remove the folder, 
+	# keeping the archive with same folder structure
+	# Tar the folder with -v for debugging purposes, output can be hidden in later version.
+	echo -e "${YELLOW}Finished! Packing up...${NC}"
 
+	# Pack up data collected, to be restored later.
+	cd $gsbackup_dir && tar -zcvf $nodename-gsbackup-$start_time.gz * && mv $nodename-gsbackup-$start_time.gz /$dir && rm -rf $gsbackup_dir
+
+	# Pack up document only data, will not be used for restoring.
+	printf "${YELLOW}Packing up document-only configuration...\n\n${NC}"
+	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv $nodename-doconly-$start_time.gz /$dir && rm -rf $doc_only
+	echo -e "${YELLOW}Cleaning up..."
+	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$nodename-gsbackup-$start_time.gz"
+	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$nodename-doconly-$start_time.gz${NC}"
+	printf "\nIf you received any cp error, make sure the file exist and/or affected services are configured.\n\n"
+	printf "To restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
+	echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+	echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
+}
+
+	
+function document {
 	###############################################################################
 	#
 	# Document only section
@@ -142,25 +171,6 @@ function backup {
 	chkconfig --list > $doc_only/chkconfig-list.out
 	cp -r --parents /etc/sysctl.conf $doc_only
 	cp -r /etc/sysconfig  $doc_only
-
-	# Once finished, pack all files into one archive then remove the folder, 
-	# keeping the archive with same folder structure
-	# Tar the folder with -v for debugging purposes, output can be hidden in later version.
-	echo -e "${YELLOW}Finished! Packing up...${NC}"
-
-	# Pack up data collected, to be restored later.
-	cd $backup_dir && tar -zcvf $nodename-backup-$start_time.gz * && mv $nodename-backup-$start_time.gz /tmp && rm -rf $backup_dir
-
-	# Pack up document only data, will not be used for restoring.
-	printf "${YELLOW}Packing up document only configuration...\n\n${NC}"
-	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv $nodename-doconly-$start_time.gz /tmp && rm -rf $doc_only
-	echo -e "${YELLOW}Cleaning up..."
-	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$backup_dir.gz"
-	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$doc_only.gz${NC}"
-	printf "\nIf you received any cp error, make sure the file exist and/or affected services are configured.\n\n"
-	printf "To restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r <path-to-file>/$nodename-backup-$start_time.gz\"\n${NC}"
-	echo -e "${ORANGE}Remember to copy this file to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
-	echo -e "${ORANGE}Do not change the filename since the restore script depends on it.${NC}"
 }
 
 ###############################################################################
@@ -168,10 +178,15 @@ function backup {
 # Restore configuration
 #
 
-function restore {
+function gs_restore {
 	local restore_path=$1
 	local restore_file=$(basename $1)
-	local hostname_restore=$(echo "$restore_file" | awk '{split($0,a,"-backup-\\w{1,}.gz"); print a[1]}')  # Extract hostnames from restore archive, assuming filename hasn't changed
+	if $(echo $OPTARG | if grep -q gs; then echo true; else echo false; fi)
+		then
+			local hostname_restore=$(echo "$restore_file" | awk '{split($0,a,"-gsbackup-\\w{1,}.gz"); print a[1]}')  # Extract hostnames from restore archive, assuming filename hasn't changed
+		else
+			local hostname_restore=$(echo "$restore_file" | awk '{split($0,a,"-backup-\\w{1,}.gz"); print a[1]}') # Backward compatible with previous version of the script
+	fi
 	echo -e "${YELLOW}Creating recovery archive, just in case...${ORANGE}"
 	mkdir /root/.ssh.ddnbak 
 	cp -r  /root/.ssh/* /root/.ssh.ddnbak
@@ -202,6 +217,8 @@ function restore {
 	tar -C / -xzvf $restore_path
 	echo -e "${YELLOW}Setting hostname...${NC}"
 	(set -x; hostnamectl set-hostname $hostname_restore) #set -x to print command
+	echo -e "${YELLOW}Setting timezone... ${NC}(If there's no /etc/clock available, this step will fail and the error can be ignored)"
+	(set -x; timedatectl set-timezone $(cat /etc/sysconfig/clock | grep ZONE | sed 's/ /_/g; s/^[^=]*=//g; s/"//g'))
 	echo -e "${YELLOW}Fixing host keys permissions...${NC}"
 	chmod 600 /etc/ssh/ssh_host_*
 	echo -e "${YELLOW}Performing hosts scan...${NC}"
@@ -251,8 +268,8 @@ function sshkeyscan {
 function help {
 	echo ""
 	echo "This script will backup network and Linux configuration in preparation for"
-	echo "GRIDSCaler 4.0 upgrade/reinstall."
-	echo "This script is meant to run on each GRIDSCaler server."
+	echo "GRIDScaler 4.0 upgrade/reinstall."
+	echo "This script is meant to run on each GRIDScaler server."
 	echo "The current version of the script supports the standard GS installation, "
 	echo "it does not back up configurations for applications not included with original GS installation."
 	echo "Specify operation you want to use:"
@@ -274,9 +291,27 @@ fi
 options=':bchsr:'
 while getopts $options opt; do
 	case $opt in
-		b) 
-			echo -e "${GREEN}Backup option selected. Starting backup process..."
-			backup
+		b) 	PS3='Select which product to backup: '
+			select PRODUCT in "GRIDScaler" "EXAScaler";
+			do 
+				case $PRODUCT in
+					"GRIDScaler")
+						echo -e "${GREEN}Backup option for GRIDScaler selected. Starting...${NC}"
+						gs_backup
+						echo -e ${NC}
+						exit 0;
+						;;
+					"EXAScaler")
+						echo -e "${GREEN}Backup option for GRIDScaler selected. Starting... (Under construction, will do nothing)${NC}"
+						#es_backup will go here
+						exit 0;
+						;;
+					*)
+						echo -e "${RED}Invalid option or no option specified${NC}"
+						exit 1;
+						;;
+				esac
+			done
 			echo -e ${NC}
 			exit 0;
 			;;
@@ -286,21 +321,30 @@ while getopts $options opt; do
 			exit 0
 			;;
 		r)
+			# Need to add checks, identify ES or GS archive
 			echo -e "${GREEN}Restore option selected. Using $OPTARG"
+			echo -e ${NC}
 			if [ ${OPTARG: -2} != $ext ]
 			then
 				echo -e "${RED}Wrong file type! Make sure you picked the backup archive"
 				echo -e ${NC}
 			else
-				restore $OPTARG
-				echo -e ${NC}
+				# If statement for checks here
+				if $(echo $OPTARG | if grep -q es; then echo true; else echo false; fi)
+				then
+					echo "es_restore here"
+				elif $(echo $OPTARG | if grep -q 'gsbackup\|backup'; then echo true; else echo false; fi)
+				then
+					gs_restore $OPTARG
+				else
+					echo -e "${RED}Cannot determine product. Use the file generated by the backup procedure. Consult with DDN Support when in doubt."
+				fi
 			fi
 			echo -e ${NC}
 			exit 0;
 			;;
 		s)
 			echo -e "${GREEN}SSH Key scan option selected.";
-			#do something
 			sshkeyscan
 			echo -e ${NC}
 			exit 0;
