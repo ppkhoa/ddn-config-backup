@@ -8,47 +8,7 @@
 
 # For support/feedback with the script, contact Khoa Pham (kpham@ddn.com) or Ed Stack (estack@ddn.com).
 
-# Version 3.0.3 (KP):
-#	Added timezone settings conversion RHEL6 -> 7, should set correct timezone after restore.
-#	Added more description for SSH key scan
-#	Prepping for some major changes.
-# Version 3.0.2 (KP):
-#	Removed redundant commands
-#	Replaced cp operation with rsync for GPFS configuration backup and exclude AFM mount (Issue #1)
-#	Fixed SSH key restore, now with proper permissions (Issue #2)
-#	Included SSH key hosts scan in restore operation
-#	Fixed GPFS restore creating extra folders
-# Version 3.0.1 (KP):
-#	Removed restore archive placement requirements.
-# Version 3.0 (KP): 
-#	Added SSH Key scan
-#	Added host keys backup/restore (could pose security risk, might need to be reconsidered)
-#	Fixed permissions for host keys
-#	Added setting hostname after restore
-#	Improved parameters detection
-# Version 2.4 (KP): 
-#	Added colors! (green = success, yellow = info, orange = warning, red = error)
-# Version 2.3.1 (KP): 
-#	Simplify untar and cleanup operation
-#	Changed recovery name from .bak to .ddnbak to prevent deleting user's files
-# Version 2.3 (KP): 
-#	Simplify restore input check
-#	Added more description for restore procedure
-#	Changed recovery archive action from mv to cp for improve redundancy.
-# Version 2.2 (KP): 
-#	Minor fixes for messages
-# Version 2.1 (KP): 
-#	Added cleanup option for deleting backed up files post-restore
-# 	Added checks to prevent wiping the whole system
-# Version 2.0 (KP): 
-#	Added backup option
-#	Added help section
-# Version 1.1 (KP): 
-#	Added more files to backup
-#	Added document only section
-#	Simplified backup directory creation
-# Version 1.0 (KP): 
-#	Initial release
+# Changelogs has been moved to GitHub wiki: https://github.com/ppkhoa/gs-config-backup/wiki
 
 
 ###############################################################################
@@ -134,12 +94,23 @@ function gs_backup {
 	echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
 }
 
-	
+###############################################################################
+#
+# EXAScaler backup section
+#
+
+function es_backup {
+	echo "test"
+	# es_backup function goes here
+}
+
+###############################################################################
+#
+# Document only section
+#
+
 function document {
-	###############################################################################
-	#
-	# Document only section
-	#
+
 	echo -e "${YELLOW}Documenting interface configuration...${NC}"
 	cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $doc_only 
 
@@ -175,7 +146,18 @@ function document {
 
 ###############################################################################
 #
-# Restore configuration
+# EXAScaler restore section
+#
+
+function es_restore {
+	echo "test"
+	# es_restore function goes here
+}
+
+
+###############################################################################
+#
+# Restore GPFS configuration
 #
 
 function gs_restore {
@@ -216,19 +198,13 @@ function gs_restore {
 	echo -e "${YELLOW}Restoring configuration...${NC}"
 	tar -C / -xzvf $restore_path
 	echo -e "${YELLOW}Setting hostname...${NC}"
-	(set -x; hostnamectl set-hostname $hostname_restore) #set -x to print command
+	(set -x; hostnamectl set-hostname $hostname_restore) # set -x to print command
 	echo -e "${YELLOW}Setting timezone... ${NC}(If there's no /etc/clock available, this step will fail and the error can be ignored)"
 	(set -x; timedatectl set-timezone $(cat /etc/sysconfig/clock | grep ZONE | sed 's/ /_/g; s/^[^=]*=//g; s/"//g'))
 	echo -e "${YELLOW}Fixing host keys permissions...${NC}"
 	chmod 600 /etc/ssh/ssh_host_*
 	echo -e "${YELLOW}Performing hosts scan...${NC}"
 	sshkeyscan
-	#rc=${status: -1} # Get the exit code for untar process
-	#if [ $rc -ne 0 ] # If fails, do not continue and exit with error code 1 to prevent damage to filesystem
-	#then
-	#	printf "\nCannot find the specified archive or the file is corrupted!\n";
-	#	exit 1;
-	#fi
 	printf "${YELLOW}Cleaning up...\n${NC}"
 	echo -e "${GREEN}Reboot the node to apply the settings.${NC}"
 	printf "\nIf you received any mv error, check the source "
@@ -291,8 +267,10 @@ fi
 options=':bchsr:'
 while getopts $options opt; do
 	case $opt in
-		b) 	PS3='Select which product to backup: '
-			select PRODUCT in "GRIDScaler" "EXAScaler";
+		b) 	
+			echo "Choose a product listed below then hit RETURN to continue:"
+			PS3='Select which product to backup -> '
+			select PRODUCT in "GRIDScaler" "EXAScaler" "Quit";
 			do 
 				case $PRODUCT in
 					"GRIDScaler")
@@ -304,6 +282,10 @@ while getopts $options opt; do
 					"EXAScaler")
 						echo -e "${GREEN}Backup option for GRIDScaler selected. Starting... (Under construction, will do nothing)${NC}"
 						#es_backup will go here
+						exit 0;
+						;;
+					"Quit")
+						echo -e "${ORANGE}Exiting...${NC}"
 						exit 0;
 						;;
 					*)
@@ -321,24 +303,36 @@ while getopts $options opt; do
 			exit 0
 			;;
 		r)
-			# Need to add checks, identify ES or GS archive
+			# Identify ES or GS archive
 			echo -e "${GREEN}Restore option selected. Using $OPTARG"
+			echo -e "Validating backup integrity..."
 			echo -e ${NC}
-			if [ ${OPTARG: -2} != $ext ]
+			if [ ! -f $OPTARG ]; 
 			then
-				echo -e "${RED}Wrong file type! Make sure you picked the backup archive"
-				echo -e ${NC}
-			else
-				# If statement for checks here
-				if $(echo $OPTARG | if grep -q es; then echo true; else echo false; fi)
+				echo -e "${RED}File does not exist! Make sure you are using the right file.${NC}";
+				exit 1;
+			fi
+			if ($(gunzip -c $OPTARG | tar t > /dev/null));
+			then
+				# Check for 'es' in filename
+				if $(echo $OPTARG | grep -q esbackup)
 				then
+					echo -e "${GREEN}File validated! Detected EXAScaler backup.${NC}"
 					echo "es_restore here"
-				elif $(echo $OPTARG | if grep -q 'gsbackup\|backup'; then echo true; else echo false; fi)
+				# Check for 'gs' or 'backup' in filename. 
+				# 'backup' is included for backward compatibility 
+				# with previous version of the script
+				elif $(echo $OPTARG | grep -q 'gsbackup\|backup')
 				then
+					echo -e "${GREEN}File validated! Detected GRIDScaler backup.${NC}"
 					gs_restore $OPTARG
 				else
-					echo -e "${RED}Cannot determine product. Use the file generated by the backup procedure. Consult with DDN Support when in doubt."
+					echo -e "${RED}Cannot determine product. Make sure you are using the archive generated by the backup process. Consult with DDN Support when in doubt."
 				fi
+			else
+				echo -e "${RED}Wrong file type or backup is corrupted! Make sure you picked the backup archive"
+				echo -e ${NC}
+				
 			fi
 			echo -e ${NC}
 			exit 0;
