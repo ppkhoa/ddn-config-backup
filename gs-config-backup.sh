@@ -227,7 +227,7 @@ function network_restore {
 	current_interface=$(ls /sys/class/net/);
 	old_interface=$(ls /etc/sysconfig/network-scripts/)
 	mac="";
-	echo -e "${ORANGE}Do you want the script to try and migrate network configuration (if HWADDR isn't defined in the old config, this might not work properly)? [y/N] ${NC}"
+	echo -e "${ORANGE}Do you want the script to attempt migrating network configuration (if HWADDR isn't defined in the old config, this might not work properly)? [y/N] ${NC}"
 	read -r response
 	if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
 	then
