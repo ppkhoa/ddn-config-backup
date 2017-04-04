@@ -60,6 +60,8 @@ function gs_backup {
 	cp -r --parents /etc/resolv.conf  $gsbackup_dir
 	cp -r --parents /etc/ntp.conf  $gsbackup_dir
 	cp -r --parents /etc/iproute2/rt_tables  $gsbackup_dir
+	cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $doc_only
+	cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $gsbackup_dir
 
 	# Hosts file
 	echo -e "${YELLOW}Backing up hosts file...${NC}"
@@ -195,8 +197,14 @@ function gs_restore {
 	cp -r  /etc/sysconfig/clock /etc/sysconfig/clock.ddnbak
 	cp -r  /etc/sysconfig/network  /etc/sysconfig/network.ddnbak
 	
+	cp -r /etc/sysconfig/network-scripts /etc/sysconfig/network-scripts.ddnbak
+	
 	echo -e "${YELLOW}Restoring configuration...${NC}"
 	tar -C / -xzvf $restore_path
+	
+	echo -e "${YELLOW}Restoring network configuration...${NC}"
+	network_restore
+
 	echo -e "${YELLOW}Setting hostname...${NC}"
 	(set -x; hostnamectl set-hostname $hostname_restore) # set -x to print command
 	echo -e "${YELLOW}Setting timezone... ${NC}(If there's no /etc/clock available, this step will fail and the error can be ignored)"
@@ -209,6 +217,41 @@ function gs_restore {
 	echo -e "${GREEN}Reboot the node to apply the settings.${NC}"
 	printf "\nIf you received any mv error, check the source "
 	printf "to confirm it exist and make sure you only run the restore once.\n\n"
+}
+
+###############################################################################
+#
+# Restore network configuration
+#
+function network_restore {
+	current_interface=$(ls /sys/class/net/);
+	old_interface=$(ls /etc/sysconfig/network-scripts/)
+	mac="";
+	echo -e "${ORANGE}Do you want the script to try and migrate network configuration (if HWADDR isn't defined in the old config, this might not work properly)? [y/N] ${NC}"
+	read -r response
+	if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+	then
+		for o in $old_interface;
+		do
+			for c in $current_interface;
+			do
+				if [[ "ifcfg-$c" = "$o" ]];
+				then 
+					mac=""; # do something
+				elif [[ "$(cat /sys/class/net/$c/address)" = "$(grep HWADDR /etc/sysconfig/network-scripts/$o | cut -c 8-25 | tr '[:upper:]' '[:lower:]')" ]];
+				then
+					mac=$(cat /sys/class/net/$c/address);
+					echo -e "${YELLOW}Migrating network configuration to new interface name: "$mac "is going from" $o "to" "ifcfg-"$c "${NC}";
+					$(touch /etc/sysconfig/network-scripts/ifcfg-$c && cat /etc/sysconfig/network-scripts/$o > /etc/sysconfig/network-scripts/ifcfg-$c && sed -i -e "s@eth[0-9]@$c@" /etc/sysconfig/network-scripts/ifcfg-$c)
+					# make sure the file exist, transfer config, overwriting post-install. Search for eth* and replace it with new name in ifcfg-* 
+				else
+					mac="";
+				fi
+			done
+		done
+	else
+		echo "${YELLOW}Skipping network migration${NC}"
+	fi
 }
 
 
