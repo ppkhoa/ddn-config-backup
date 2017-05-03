@@ -25,7 +25,6 @@ gsbackup_dir="/tmp/$nodename-gsbackup-$start_time"
 doc_only="/tmp/$nodename-doconly-$start_time"
 esbackup_dir="/tmp/$nodename-esbackup-$start_time"
 
-ext="gz"
 
 ###############################################################################
 #
@@ -73,7 +72,11 @@ function gs_backup {
 
 	# Generic Linux config
 	echo -e "${YELLOW}Backing up Linux config...${NC}"
-	cp -r --parents /etc/sysconfig/clock $gsbackup_dir
+	if [ -e /etc/sysconfig/clock ]; 
+	then 
+		cp -r --parents /etc/sysconfig/clock $gsbackup_dir; 
+	fi
+	#cp -r --parents /etc/sysconfig/clock $gsbackup_dir, deprecated by if statement above
 	cp -r --parents /etc/sysconfig/network  $gsbackup_dir
 	document
 	# Once finished, pack all files into one archive then remove the folder, 
@@ -82,16 +85,16 @@ function gs_backup {
 	echo -e "${YELLOW}Finished! Packing up...${NC}"
 
 	# Pack up data collected, to be restored later.
-	cd $gsbackup_dir && tar -zcvf $nodename-gsbackup-$start_time.gz * && mv $nodename-gsbackup-$start_time.gz /$dir && rm -rf $gsbackup_dir
+	cd $gsbackup_dir && tar -zcvf $nodename-gsbackup-$start_time.gz * && mv $nodename-gsbackup-$start_time.gz /$dir && cd /tmp && rm -rf $gsbackup_dir
 
 	# Pack up document only data, will not be used for restoring.
 	printf "${YELLOW}Packing up document-only configuration...\n\n${NC}"
-	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv $nodename-doconly-$start_time.gz /$dir && rm -rf $doc_only
+	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv $nodename-doconly-$start_time.gz /$dir && cd /tmp && rm -rf $doc_only
 	echo -e "${YELLOW}Cleaning up..."
 	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$nodename-gsbackup-$start_time.gz"
 	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$nodename-doconly-$start_time.gz${NC}"
-	printf "\nIf you received any cp error, make sure the file exist and/or affected services are configured.\n\n"
-	printf "To restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
+	#printf "\nIf you received any cp error, make sure the file exist and/or affected services are configured.\n\n", deprecated
+	printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
 	echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
 	echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
 }
