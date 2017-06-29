@@ -38,7 +38,7 @@ NC='\033[0m'
 
 ###############################################################################
 #
-# Backup configurations (to be restored)
+# Backup configurations
 #
 function net_backup() {
 # network configuration
@@ -46,25 +46,25 @@ function net_backup() {
 # $2 - doc target dir
     local FNAME=net_backup
     if [ -z "$1" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME error input arguments"
+		exit 1
     else
-	local backup_dir=$1
-	if [ ! -d $backup_dir ]; then 
-	    echo -e "`basename $0` error cannot find backup_dir $backup_dir"
-	    return 1
-	fi
+		local backup_dir=$1
+		if [ ! -d $backup_dir ]; then 
+			echo -e "`basename $0` error cannot find backup_dir $backup_dir"
+			return 1
+		fi
     fi
 
     if [ -z "$2" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
-    else
-	local doc_dir=$2
-	if [ ! -d $doc_dir ]; then 
-	    echo -e "`basename $0` error cannot find doc_dir $doc_dir"
-	    return 1
-	fi
+		echo -e "$FNAME error input arguments"
+		exit 1
+	else
+		local doc_dir=$2
+		if [ ! -d $doc_dir ]; then 
+			echo -e "`basename $0` error cannot find doc_dir $doc_dir"
+			return 1
+		fi
     fi
 
     # Linux and network config
@@ -76,9 +76,9 @@ function net_backup() {
     cp -r --parents /etc/sysconfig/network  $backup_dir
     cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $doc_dir
     cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $backup_dir
-    cp -r --parents /etc/sysconfig/network-scripts/route-* $backup_dir
+    [[ -e /etc/sysconfig/network-scripts/route-* ]] && (cp -r --parents /etc/sysconfig/network-scripts/route-* $backup_dir)
 
-    cp -r --parents /etc/sysconfig/iptables $backup_dir
+    [[ -e /etc/sysconfig/iptables ]] && (cp -r --parents /etc/sysconfig/iptables $backup_dir)
 
     ip link > $doc_dir/ip_link.out 2>&1
     ip addr > $doc_dir/ip_addr.out 2>&1
@@ -105,25 +105,25 @@ function ssh_backup() {
 # $2 - doc target dir
     local FNAME=ssh_backup
     if [ -z "$1" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME error input arguments"
+		exit 1
     else
-	local backup_dir=$1
-	if [ ! -d $backup_dir ]; then 
-	    echo -e "`basename $0` error cannot find backup_dir $backup_dir"
-	    return 1
-	fi
+		local backup_dir=$1
+		if [ ! -d $backup_dir ]; then 
+			echo -e "`basename $0` error cannot find backup_dir $backup_dir"
+			return 1
+		fi
     fi
 
     if [ -z "$2" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME error input arguments"
+		exit 1
     else
-	local doc_dir=$2
-	if [ ! -d $doc_dir ]; then 
-	    echo -e "`basename $0` error cannot find doc_dir $doc_dir"
-	    return 1
-	fi
+		local doc_dir=$2
+		if [ ! -d $doc_dir ]; then 
+			echo -e "`basename $0` error cannot find doc_dir $doc_dir"
+			return 1
+		fi
     fi
 
     # SSH Keys
@@ -139,25 +139,25 @@ function ddn_backup() {
 # $2 - doc target dir
     local FNAME=ddn_backup
     if [ -z "$1" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME error input arguments"
+		exit 1
     else
-	local backup_dir=$1
-	if [ ! -d $backup_dir ]; then 
-	    echo -e "`basename $0` error cannot find backup_dir $backup_dir"
-	    return 1
-	fi
+		local backup_dir=$1
+		if [ ! -d $backup_dir ]; then 
+			echo -e "`basename $0` error cannot find backup_dir $backup_dir"
+			return 1
+		fi
     fi
 
     if [ -z "$2" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME error input arguments"
+		exit 1
     else
-	local doc_dir=$2
-	if [ ! -d $doc_dir ]; then 
-	    echo -e "`basename $0` error cannot find doc_dir $doc_dir"
-	    return 1
-	fi
+		local doc_dir=$2
+		if [ ! -d $doc_dir ]; then 
+			echo -e "`basename $0` error cannot find doc_dir $doc_dir"
+			return 1
+		fi
     fi
 
     # DDN config files
@@ -173,34 +173,34 @@ function linux_backup() {
 # $2 - doc target dir
     local FNAME=linux_backup
     if [ -z "$1" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME backup target error input arguments"
+		exit 1
     else
-	local backup_dir=$1
-	if [ ! -d $backup_dir ]; then 
-	    echo -e "`basename $0` error cannot find backup_dir $backup_dir"
-	    return 1
-	fi
+		local backup_dir=$1
+		if [ ! -d $backup_dir ]; then 
+			echo -e "`basename $0` error cannot find backup_dir $backup_dir"
+			return 1
+		fi
     fi
 
     if [ -z "$2" ]; then	
-	echo -e "$FNAME error input arguments"
-	exit 1
+		echo -e "$FNAME doc target error input arguments"
+		exit 1
     else
-	local doc_dir=$2
-	if [ ! -d $doc_dir ]; then 
-	    echo -e "`basename $0` error cannot find doc_dir $doc_dir"
-	    return 1
-	fi
+		local doc_dir=$2
+		if [ ! -d $doc_dir ]; then 
+			echo -e "`basename $0` error cannot find doc_dir $doc_dir"
+			return 1
+		fi
     fi
 
     # Generic Linux config
     echo -e "${YELLOW}Backing up Linux config...${NC}"
     [[ -e /etc/sysconfig/clock ]]&& (cp -r --parents /etc/sysconfig/clock $backup_dir )
 
-    cp -r --parents /etc/sysctl.conf $backup_dir
-    cp -r --parents /etc/sysctl.d/ $backup_dir
-    cp -r --parents /etc/modprobe.conf $backup_dir
+    [[ -e /etc/sysctl.conf ]]&& (cp -r --parents /etc/sysctl.conf $backup_dir)
+    [[ -d /etc/sysctl.d/ ]] && (cp -r --parents /etc/sysctl.d/ $backup_dir)
+    [[ -e /etc/modprobe.conf ]] && (cp -r --parents /etc/modprobe.conf $backup_dir)
     cp -r --parents /etc/modprobe.d/ $backup_dir
     cp -r --parents /etc/sudoers $backup_dir
     cp -r --parents /etc/sudoers.d/ $backup_dir
@@ -223,7 +223,7 @@ function dev_backup() {
 # $2 - doc target dir
     local FNAME=dev_backup
     if [ -z "$1" ]; then	
-	echo -e "$FNAME error input arguments"
+	echo -e "$FNAME backup target error input arguments"
 	exit 1
     else
 	local backup_dir=$1
@@ -234,7 +234,7 @@ function dev_backup() {
     fi
 
     if [ -z "$2" ]; then	
-	echo -e "$FNAME error input arguments"
+	echo -e "$FNAME doc target error input arguments"
 	exit 1
     else
 	local doc_dir=$2
@@ -253,7 +253,12 @@ function dev_backup() {
 } #dev_backup
 
 
+###############################################################################
+#
+# GRIDScaler backup section
+#
 function gs_backup {
+	local FNAME=es_backup
 	dir=$(pwd)
 	# Create folders for backup
 	mkdir -vp $gsbackup_dir $doc_only
@@ -263,6 +268,7 @@ function gs_backup {
 	ddn_backup $gsbackup_dir $doc_only
 	linux_backup $gsbackup_dir $doc_only
 	dev_backup $gsbackup_dir $doc_only
+	document $esbackup_dir $doc_only
 
 	# GPFS config
 	echo -e "${YELLOW}Backing up GPFS configuration...${NC}"
@@ -274,16 +280,19 @@ function gs_backup {
 	echo -e "${YELLOW}Finished! Packing up...${NC}"
 
 	# Pack up data collected, to be restored later.
-	cd $gsbackup_dir && tar -zcvf $nodename-gsbackup-$start_time.gz * && mv $nodename-gsbackup-$start_time.gz /$dir && cd /tmp && rm -rf $gsbackup_dir
+	cd $gsbackup_dir && tar -zcvf $nodename-gsbackup-$start_time.gz * && mv -v $nodename-gsbackup-$start_time.gz $dir && cd /tmp && rm -rf $gsbackup_dir
 
 	# Pack up document only data, will not be used for restoring.
 	printf "${YELLOW}Packing up document-only configuration...\n\n${NC}"
-	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv $nodename-doconly-$start_time.gz /$dir && cd /tmp && rm -rf $doc_only
-	echo -e "${YELLOW}Cleaning up...${NC}"
-	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$nodename-gsbackup-$start_time.gz${NC}"
-	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$nodename-doconly-$start_time.gz${NC}"
-	#printf "\nIf you received any cp error, make sure the file exist and/or affected services are configured.\n\n", deprecated
-	printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash gs-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
+	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv -v $nodename-doconly-$start_time.gz $dir && cd /tmp && rm -rf $doc_only
+	# test archives
+    echo -e "${YELLOW}Cleaning up...${NC}"
+    tar -tzf /$dir/$nodename-gsbackup-$start_time.gz && cd /tmp && rm -rf $gsbackup_dir
+    tar -tzf /$dir/$nodename-doconly-$start_time.gz &&  cd /tmp && rm -rf $doc_only
+	
+	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.gz${NC}"
+	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
+	printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash ddn-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
 	echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
 	echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
 }
@@ -304,8 +313,8 @@ function es_backup {
     ddn_backup $esbackup_dir $doc_only
     linux_backup $esbackup_dir $doc_only
     dev_backup $esbackup_dir $doc_only
+	document $esbackup_dir $doc_only
 
-    # es_backup function goes here
     echo -e "${YELLOW}Backing up Lustre /proc configuration...${NC}"
 
     # sys lnet config
@@ -326,19 +335,19 @@ function es_backup {
     echo -e "${YELLOW}Finished! Packing up...${NC}"
 
     # Pack up data collected, to be restored later.
-    cd $esbackup_dir && tar -zcvf $nodename-esbackup-$start_time.gz * && mv -v $nodename-esbackup-$start_time.gz /$dir 
+    cd $esbackup_dir && tar -zcvf $nodename-esbackup-$start_time.gz * && mv -v $nodename-esbackup-$start_time.gz $dir 
 
     # Pack up document only data, will not be used for restoring.
     printf "${YELLOW}Packing up document-only configuration...\n\n${NC}"
-    cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv -v $nodename-doconly-$start_time.gz /$dir 
+    cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv -v $nodename-doconly-$start_time.gz $dir 
 
     # test archives
     echo -e "${YELLOW}Cleaning up...${NC}"
     tar -tzf /$dir/$nodename-esbackup-$start_time.gz && cd /tmp && rm -rf $esbackup_dir
     tar -tzf /$dir/$nodename-doconly-$start_time.gz &&  cd /tmp && rm -rf $doc_only
 
-    echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}/$dir/$nodename-esbackup-$start_time.gz${NC}"
-    echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}/$dir/$nodename-doconly-$start_time.gz${NC}"
+    echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-esbackup-$start_time.gz${NC}"
+    echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 
     echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing EXAScaler upgrade/reinstall.${NC}"
 
@@ -350,38 +359,63 @@ function es_backup {
 #
 
 function document {
+# Generic document-only
+# $1 - backup target dir
+# $2 - doc target dir
+    local FNAME=document
+    if [ -z "$1" ]; then	
+		echo -e "$FNAME error input arguments"
+		exit 1
+    else
+		local backup_dir=$1
+		if [ ! -d $backup_dir ]; then 
+			echo -e "`basename $0` error cannot find backup_dir $backup_dir"
+			return 1
+		fi
+    fi
 
+    if [ -z "$2" ]; then	
+		echo -e "$FNAME error input arguments"
+		exit 1
+    else
+		local doc_dir=$2
+		if [ ! -d $doc_dir ]; then 
+			echo -e "`basename $0` error cannot find doc_dir $doc_dir"
+			return 1
+		fi
+    fi
+
+    # Generic Linux config
+    echo -e "${YELLOW}Backing up Linux config...${NC}"
+    [[ -e /etc/sysconfig/clock ]]&& (cp -r --parents /etc/sysconfig/clock $backup_dir )
 	echo -e "${YELLOW}Documenting interface configuration...${NC}"
-	cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $doc_only 
+	cp -r --parents /etc/sysconfig/network-scripts/ifcfg-* $doc_dir 
 
 	# Hostname, in different format
 	echo -e "${YELLOW}Documenting hostname...${NC}"
-	hostname > $doc_only/hostname.out 
-	hostname -s > $doc_only/hostname_s.out 
-	hostname -f > $doc_only/hostname_f.out 
-	lsscsi > $doc_only/lsscsi.out 
+	hostname > $doc_dir /hostname.out 
+	lsscsi > $doc_dir /lsscsi.out 
 
 	# Multipath
 	echo -e "${YELLOW}Documenting multipath configuration files...${NC}"
-	cp -r --parents /etc/multipath.conf $doc_only
+	cp -r --parents /etc/multipath.conf $doc_dir 
 
 	# DDN stuff
 	echo -e "${YELLOW}Documenting DDN config...${NC}"
-	cp -r --parents /etc/ddn/*.conf $doc_only
-	cp -r --parents /opt/ddn/bin/tune_devices.sh $doc_only
+	cp -r --parents /etc/ddn/*.conf $doc_dir
+	cp -r --parents /opt/ddn/bin/tune_devices.sh $doc_dir 
 
 	# Routing tables
 	echo -e "${YELLOW}Documenting routing tables...${NC}"
 	ip route show table all > $doc_only/ip_route_show_table_all.out
-	ip rule show > $doc_only/ip_rule_show.out && ip route > $doc_only/ip_route.out 
-	ip a > $doc_only/ip_a.out
+	ip rule show > $doc_only/ip_rule_show.out && ip route > $doc_dir /ip_route.out 
+	ip a > $doc_dir /ip_a.out
 
 	# Generic Linux config
 	echo -e "${YELLOW}Documenting Linux config...${NC}"
-	cp -r --parents /etc/fstab $doc_only
-	chkconfig --list > $doc_only/chkconfig-list.out
-	cp -r --parents /etc/sysctl.conf $doc_only
-	cp -r /etc/sysconfig  $doc_only
+	cp -r --parents /etc/fstab $doc_dir 
+	cp -r --parents /etc/sysctl.conf $doc_dir 
+	cp -r /etc/sysconfig  $doc_dir 
 }
 
 ###############################################################################
@@ -500,7 +534,7 @@ function network_restore {
 			done
 		done
 	else
-		echo "${YELLOW}Skipping network migration${NC}"
+		echo -e "${YELLOW}Skipping network migration${NC}"
 	fi
 }
 
@@ -527,7 +561,7 @@ function sshkeyscan {
 	echo -e "${YELLOW}Grabbing IPs and hostnames from /etc/hosts...${NC}"
 	awk '{for(i=1;i<=NF;i++) print $i }' /etc/hosts | sort | uniq > sshkeyhosts.txt # For every line in the hosts file, get IP address and all hostname, sort and filter duplicates
 	echo -e "${YELLOW}Backing up existing known_hosts..."
-	mv /root/.ssh/known_hosts /root/.ssh/known_hosts.bak
+	[[ -e /root/.ssh/known_hosts ]] && (mv /root/.ssh/known_hosts /root/.ssh/known_hosts.bak)
 	echo -e "${YELLOW}Scanning all hosts for SSH host keys...${NC}"
 	ssh-keyscan -f sshkeyhosts.txt > /root/.ssh/known_hosts # Scan all the hosts and add them to known_hosts
 	echo -e "${GREEN}Done!${NC}"	
