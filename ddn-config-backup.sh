@@ -209,7 +209,8 @@ function linux_backup() {
 
     cp -r --parents /etc/rc.d/rc.local $backup_dir
     cp -r --parents /etc/nsswitch.conf $backup_dir
-    cp -r --parents /etc/fstab $backup_dir  
+	# Not recommended
+    # cp -r --parents /etc/fstab $backup_dir  
     cp -r --parents /etc/exports $backup_dir  
 
     rpm -qa > $doc_dir/rpm_qa.out 2>&1
@@ -413,7 +414,7 @@ function document {
 
 	# Generic Linux config
 	echo -e "${YELLOW}Documenting Linux config...${NC}"
-	cp -r --parents /etc/fstab $doc_dir 
+	# cp -r --parents /etc/fstab $doc_dir 
 	cp -r --parents /etc/sysctl.conf $doc_dir 
 	cp -r /etc/sysconfig  $doc_dir 
 }
