@@ -2,7 +2,7 @@
 A simple script to backup/restore configuration, in case a GRIDScaler/EXAScaler node needs to be reinstalled/reimaged
 
 ## **About**
-This script will backup network and Linux configuration in preparation for GRIDSCaler 4.0/EXAScaler 3.0 upgrade/reinstall. This script is meant to run on each GRIDSCaler/EXAScaler server. The current version of the script supports the standard GS/ES installation, it does not back up configurations for applications not included with original GS/ES installation.
+This script will backup network and Linux configuration in preparation for GRIDSCaler 4.x/EXAScaler 3.x upgrade/reinstall. This script is meant to run on each GRIDSCaler/EXAScaler server. The current version of the script supports the standard GS/ES installation, it does not back up configurations for applications not included with original GS/ES installation.
 
 The script can also beuse to migrate configuration from CentOS/RHEL 6.x to CentOS/RHEL 7.x
 
