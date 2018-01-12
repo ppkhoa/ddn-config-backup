@@ -162,7 +162,7 @@ function ddn_backup() {
 
     # DDN config files
     echo -e "${YELLOW}Backing up DDN config...${NC}"
-    cp -r --parents /etc/ddn/*.conf $backup_dir
+    # cp -r --parents /etc/ddn/*.conf $backup_dir # RHEL 7.4 compatibility issue
     cp -r --parents /opt/ddn/bin/tune_devices.sh $backup_dir
  } #ddn_backup
 
@@ -200,8 +200,8 @@ function linux_backup() {
 
     [[ -e /etc/sysctl.conf ]]&& (cp -r --parents /etc/sysctl.conf $backup_dir)
     [[ -d /etc/sysctl.d/ ]] && (cp -r --parents /etc/sysctl.d/ $backup_dir)
-    [[ -e /etc/modprobe.conf ]] && (cp -r --parents /etc/modprobe.conf $backup_dir)
-    cp -r --parents /etc/modprobe.d/ $backup_dir
+    #[[ -e /etc/modprobe.conf ]] && (cp -r --parents /etc/modprobe.conf $backup_dir) # RHEL 7.4 compatibility issue
+    #cp -r --parents /etc/modprobe.d/ $backup_dir # RHEL 7.4 compatibility issue
     cp -r --parents /etc/sudoers $backup_dir
     cp -r --parents /etc/sudoers.d/ $backup_dir
     cp -r --parents /etc/logrotate.conf $backup_dir
@@ -437,7 +437,7 @@ function es_restore {
 #   NB: don't restore /etc/sysconfig/network
 # review custom network routing and/or iptables
 # review custom lustre proc config
-	echo "test"
+	echo "Not implemented yet"
 	# es_restore function goes here
 }
 
