@@ -616,6 +616,7 @@ function help {
 	echo "it does not back up configurations for applications not included with original GS installation."
 	echo "Specify operation you want to use:"
 	echo "-b for backup"
+	echo "-o to restore original files after a failed restore attempt"
 	echo "-c to clean up recovery archive files. Make sure everything's working before using this option"
 	echo "-r <path-to-file> for restore"
 	echo "-s to scan all hosts from /etc/hosts for SSH host keys"

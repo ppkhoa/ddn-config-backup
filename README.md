@@ -11,6 +11,7 @@ The script can also beuse to migrate configuration from CentOS/RHEL 6.x to CentO
 bash ddn-config-backup [-bchs] [-r filename]
 
 -b for backup
+-o to restore original files after a failed restore attempt
 -c to clean up recovery archive files. Make sure everything's working before using this option
 -r <filename> for restore, must be in the same non-root (i.e. /root is okay, / is not) folder as the script
 -s to scan all hosts from /etc/hosts for SSH host keys
