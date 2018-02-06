@@ -244,9 +244,10 @@ function dev_backup() {
 	    return 1
 	fi
     fi
-
-    cp -r --parents /etc/multipath.conf $backup_dir
-    cp -r --parents /etc/multipath.conf.ddn $backup_dir
+	
+	# Moved to document only
+    #cp -r --parents /etc/multipath.conf $backup_dir
+    #cp -r --parents /etc/multipath.conf.ddn $backup_dir # duplicate original
 
     lsscsi --verbose --long > $doc_dir/lsscsi.out 2>&1
     lsblk --fs --all > $doc_dir/lsblk.out 2>&1
@@ -416,6 +417,7 @@ function document {
 	echo -e "${YELLOW}Documenting Linux config...${NC}"
 	# cp -r --parents /etc/fstab $doc_dir 
 	cp -r --parents /etc/sysctl.conf $doc_dir 
+	
 	cp -r /etc/sysconfig  $doc_dir 
 }
 
@@ -537,6 +539,42 @@ function network_restore {
 	else
 		echo -e "${YELLOW}Skipping network migration${NC}"
 	fi
+}
+
+###############################################################################
+#
+# Back out option for failed restore. Revert back to new install/pre-upgrade 
+# state (only applicable to config files)
+#
+function revert {
+	printf "${YELLOW}Reverting changes...\n${NC}"
+	# SSH keys
+	[[ -e /root/.ssh.ddnbak ]]&& (cp -r --parents /root/.ssh.ddnbak /root/.ssh)
+	[[ -e /etc/ssh.ddnbak ]]&& (cp -r --parents /etc/ssh.ddnbak /etc/ssh)
+	
+	# GPFS config
+	[[ -e /var/mmfs.ddnbak ]]&& (cp -r --parents /var/mmfs.ddnbak /var/mmfs)
+
+	
+	# Linux and network config
+	[[ -e /etc/networks.ddnbak ]]&& (cp -r --parents /etc/networks.ddnbak /etc/networks)
+	[[ -e /etc/resolv.conf.ddnbak ]]&& (cp -r --parents /etc/resolv.conf.ddnbak /etc/resolv.conf)
+	[[ -e /etc/ntp.conf.ddnbak ]]&& (cp -r --parents /etc/ntp.conf.ddnbak /etc/ntp.conf)
+	[[ -e /etc/iproute2/rt_tables.ddnbak ]]&& (cp -r --parents /etc/iproute2/rt_tables.ddnbak /etc/iproute2/rt_tables)
+	cp /etc/iproute2/rt_tables  /etc/iproute2/rt_tables.ddnbak
+
+	# Hosts file
+	[[ -e /etc/hosts.ddnbak ]]&& (cp -r --parents /etc/hosts.ddnbak /etc/hosts)
+
+	# DDN config files
+	[[ -e /etc/ddn.ddnbak ]]&& (cp -r --parents /etc/ddn.ddnbak /etc/ddn)
+
+
+	# Generic Linux config
+	[[ -e /etc/sysconfig/clock.ddnbak ]]&& (cp -r --parents /etc/sysconfig/clock.ddnbak /etc/sysconfig/clock)
+	[[ -e /etc/sysconfig/network.ddnbak ]]&& (cp -r --parents /etc/sysconfig/network.ddnbak /etc/sysconfig/network)
+	[[ -e /etc/sysconfig/network-scripts.ddnbak ]]&& (cp -r --parents /etc/sysconfig/network-scripts.ddnbak /etc/sysconfig/network-scripts)
+	printf "${GREEN}Done!\n${NC}"
 }
 
 
@@ -675,6 +713,12 @@ while getopts $options opt; do
 		c)
 			echo -e "${GREEN}Cleanup action selected.";
 			cleanup
+			echo -e ${NC}
+			exit 0;
+			;;
+		o)
+			echo -e "${GREEN}Revert action selected.";
+			revert
 			echo -e ${NC}
 			exit 0;
 			;;
