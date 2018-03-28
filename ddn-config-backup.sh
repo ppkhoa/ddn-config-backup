@@ -306,7 +306,7 @@ function gs_backup {
 	printf "\n\n"
 	echo "Choose an option listed below then hit RETURN to continue:"
 	OPTION2='Select option -> '
-	select OPTION in "Create backup archive" "Create self-extracting archive";
+	select OPTION in "Create backup archive" "Create self-extracting archive" ;
 	do 
 		case $OPTION in
 			"Create backup archive")
@@ -320,7 +320,7 @@ function gs_backup {
 				echo -e ${NC}
 				exit 0;
 				;;
-			"Create self-extract archive")
+			"Create self-extracting archive")
 				echo -e "${GREEN}Creating self-extracting archive...${NC}"
 				echo -e ${NC}
 				sfx_maker $dir
