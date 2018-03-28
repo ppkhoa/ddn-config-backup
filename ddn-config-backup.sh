@@ -254,13 +254,21 @@ function dev_backup() {
     ls -l /dev/mapper/ > $doc_dir/dm_devices.out 2>&1
 } #dev_backup
 
+###############################################################################
+#
+# GRIDScaler backup self-extracting package maker
+#
+function sfx_maker {
+	dir=$1
+	cat $dir/ddn-config-backup.sh $dir/$nodename-gsbackup-$start_time.gz > /$dir/$nodename-gsbackup-$start_time.ddnx
+}
 
 ###############################################################################
 #
 # GRIDScaler backup section
 #
 function gs_backup {
-	local FNAME=es_backup
+	local FNAME=gs_backup
 	dir=$(pwd)
 	# Create folders for backup
 	mkdir -vp $gsbackup_dir $doc_only
@@ -270,12 +278,14 @@ function gs_backup {
 	ddn_backup $gsbackup_dir $doc_only
 	linux_backup $gsbackup_dir $doc_only
 	dev_backup $gsbackup_dir $doc_only
-	document $esbackup_dir $doc_only
+	document $gsbackup_dir $doc_only
 
 	# GPFS config
 	echo -e "${YELLOW}Backing up GPFS configuration...${NC}"
 	rsync -av /var/mmfs $doc_only/var --exclude afm
-	cp -r --parents /var/mmfs/gen/mmsdrfs $backup_dir
+	cp /var/mmfs/gen/mmsdrfs /var/mmfs/gen/mmsdrfs.old
+	cp -r --parents /var/mmfs/gen/mmsdrfs.old $backup_dir
+	rm -rf /var/mmfs/gen/mmsdrfs.old
 	# rsync -av /var/mmfs $gsbackup_dir/var --exclude afm # No longer backup all GPFS configuration
 
 	# Once finished, pack all files into one archive then remove the folder, 
@@ -290,16 +300,52 @@ function gs_backup {
 	printf "${YELLOW}Packing up document-only configuration...\n\n${NC}"
 	cd $doc_only && tar -zcvf $nodename-doconly-$start_time.gz * && mv -v $nodename-doconly-$start_time.gz $dir && cd /tmp && rm -rf $doc_only
 	# test archives
-    echo -e "${YELLOW}Cleaning up...${NC}"
-    tar -tzf /$dir/$nodename-gsbackup-$start_time.gz && cd /tmp && rm -rf $gsbackup_dir
-    tar -tzf /$dir/$nodename-doconly-$start_time.gz &&  cd /tmp && rm -rf $doc_only
-	
-	echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.gz${NC}"
-	echo -e "${ORANGE}IMPORTANT! Run "mmsdrrestore -p <working NSD server>" to restore GPFS config${NC}"
-	echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
-	printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash ddn-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
-	echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
-	echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
+    echo -e "${YELLOW}Cleaning up and check for corruption...${NC}"
+    tar -tzf /$dir/$nodename-gsbackup-$start_time.gz 
+    tar -tzf /$dir/$nodename-doconly-$start_time.gz
+	echo "Choose an option listed below then hit RETURN to continue:"
+	OPTION2='Select option -> '
+	select OPTION in "Create backup archive" "Create self-extracting archive";
+	do 
+		case $OPTION in
+			"Create backup archive")
+				echo -e "${GREEN}Backup archive option for GRIDScaler selected...${NC}"
+				echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.gz${NC}"
+				echo -e "${ORANGE}IMPORTANT! Run ""mmsdrrestore -p <working NSD server>"" to restore GPFS config${NC}"
+				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
+				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
+				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+				echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
+				echo -e ${NC}
+				exit 0;
+				;;
+			"Create self-extract archive")
+				echo -e "${GREEN}Creating self-extracting archive...${NC}"
+				echo -e ${NC}
+				sfx_maker $dir
+				rm -f /$dir/$nodename-gsbackup-$start_time.gz
+				echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.ddnx${NC}"
+				echo -e "${ORANGE}IMPORTANT! Run ""mmsdrrestore -p <working NSD server>"" to restore GPFS config${NC}"
+				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
+				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.ddnx\"\n${NC}"
+				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+				echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
+				exit 0;
+				;;
+			*)
+				echo -e "${RED}Invalid option or no option specified. Default to option 1...${NC}"
+				echo -e "${GREEN}Backup archive option for GRIDScaler selected...${NC}"
+				echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.gz${NC}"
+				echo -e "${ORANGE}IMPORTANT! Run ""mmsdrrestore -p <working NSD server>"" to restore GPFS config${NC}"
+				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
+				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
+				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+				echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
+				echo -e ${NC}
+				exit 0;
+				;;
+		esac
+	done
 }
 
 ###############################################################################
@@ -398,8 +444,8 @@ function document {
 
 	# Hostname, in different format
 	echo -e "${YELLOW}Documenting hostname...${NC}"
-	hostname > $doc_dir /hostname.out 
-	lsscsi > $doc_dir /lsscsi.out 
+	hostname > $doc_dir/hostname.out 
+	lsscsi > $doc_dir/lsscsi.out 
 
 	# Multipath
 	echo -e "${YELLOW}Documenting multipath configuration files...${NC}"
@@ -413,8 +459,8 @@ function document {
 	# Routing tables
 	echo -e "${YELLOW}Documenting routing tables...${NC}"
 	ip route show table all > $doc_only/ip_route_show_table_all.out
-	ip rule show > $doc_only/ip_rule_show.out && ip route > $doc_dir /ip_route.out 
-	ip a > $doc_dir /ip_a.out
+	ip rule show > $doc_only/ip_rule_show.out && ip route > $doc_dir/ip_route.out 
+	ip a > $doc_dir/ip_a.out
 
 	# Generic Linux config
 	echo -e "${YELLOW}Documenting Linux config...${NC}"
@@ -455,7 +501,7 @@ function es_restore {
 function gs_restore {
 	local restore_path=$1
 	local restore_file=$(basename $1)
-	if $(echo $OPTARG | if grep -q gs; then echo true; else echo false; fi)
+	if $(echo $restore_file | if grep -q gs; then echo true; else echo false; fi)
 		then
 			local hostname_restore=$(echo "$restore_file" | awk '{split($0,a,"-gsbackup-\\w{1,}.gz"); print a[1]}')  # Extract hostnames from restore archive, assuming filename hasn't changed
 		else
@@ -491,6 +537,7 @@ function gs_restore {
 	
 	echo -e "${YELLOW}Restoring configuration...${NC}"
 	tar -C / -xzvf $restore_path
+	rm -f $restore_path
 	
 	echo -e "${YELLOW}Restoring network configuration...${NC}"
 	network_restore
@@ -508,6 +555,29 @@ function gs_restore {
 	printf "\nIf you received any mv error, check the source "
 	printf "to confirm it exist and make sure you only run the restore once.\n\n"
 }
+
+###############################################################################
+#
+# Self-extract GS restore
+#
+function sfx_gs_restore {
+	local dir=$(pwd)
+	local filename=`basename "$0" .ddnx`
+	echo -e "${ORANGE}This is a self-extracting backup. Do you want to continue? (Choosing yes will start the restore process) [y/N] ${NC}"
+	read -r response
+	if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+	then
+		# Get line number where the backup archive starts
+		tail -n+$(awk '/^__ARCHIVE_BELOW__/ {print NR + 1; exit 0; }' $filename.ddnx) $filename.ddnx > $filename.gz
+	
+		# Call restore function
+		gs_restore $dir/$filename.gz
+	else
+		echo -e "${YELLOW}Exiting...${NC}"
+		exit 0;
+	fi
+}
+
 
 ###############################################################################
 #
@@ -621,120 +691,130 @@ function help {
 	echo "-b for backup"
 	echo "-o to restore original files after a failed restore attempt"
 	echo "-c to clean up recovery archive files. Make sure everything's working before using this option"
-	echo "-r <path-to-file> for restore"
+	echo "-r <path-to-file> for restore, if separate archive option was selected during backup"
 	echo "-s to scan all hosts from /etc/hosts for SSH host keys"
 }
 
 ###############################################################################
 # Main ()
 #
-if [ $# -eq 0 ]
-  then
-    echo -e "${ORANGE}No arguments supplied, showing help${NC}"
-	help
-	exit 0;
-fi
-options=':bchsr:'
-while getopts $options opt; do
-	case $opt in
-		b) 	
-			echo "Choose a product listed below then hit RETURN to continue:"
-			PS3='Select which product to backup -> '
-			select PRODUCT in "GRIDScaler" "EXAScaler" "Quit";
-			do 
-				case $PRODUCT in
-					"GRIDScaler")
-						echo -e "${GREEN}Backup option for GRIDScaler selected. Starting...${NC}"
-						gs_backup
-						echo -e ${NC}
-						exit 0;
-						;;
-					"EXAScaler")
-						echo -e "${GREEN}Backup option for GRIDScaler selected. Starting... (Under construction, will do nothing)${NC}"
-						es_backup
-						echo -e ${NC}
-						exit 0;
-						;;
-					"Quit")
-						echo -e "${ORANGE}Exiting...${NC}"
-						exit 0;
-						;;
-					*)
-						echo -e "${RED}Invalid option or no option specified${NC}"
-						exit 1;
-						;;
-				esac
-			done
-			echo -e ${NC}
-			exit 0;
-			;;
-		h) 
-			help; 
-			echo -e ${NC}
-			exit 0
-			;;
-		r)
-			# Identify ES or GS archive
-			echo -e "${GREEN}Restore option selected. Using $OPTARG"
-			echo -e "Validating backup integrity..."
-			echo -e ${NC}
-			if [ ! -f $OPTARG ]; 
-			then
-				echo -e "${RED}File does not exist! Make sure you are using the right file.${NC}";
-				exit 1;
-			fi
-			if ($(gunzip -c $OPTARG | tar t > /dev/null));
-			then
-				# Check for 'es' in filename
-				if $(echo $OPTARG | grep -q esbackup)
-				then
-					echo -e "${GREEN}File validated! Detected EXAScaler backup.${NC}"
-					echo "es_restore here"
-				# Check for 'gs' or 'backup' in filename. 
-				# 'backup' is included for backward compatibility 
-				# with previous version of the script
-				elif $(echo $OPTARG | grep -q 'gsbackup\|backup')
-				then
-					echo -e "${GREEN}File validated! Detected GRIDScaler backup.${NC}"
-					gs_restore $OPTARG
-				else
-					echo -e "${RED}Cannot determine product. Make sure you are using the archive generated by the backup process. Consult with DDN Support when in doubt."
-				fi
-			else
-				echo -e "${RED}Wrong file type or backup is corrupted! Make sure you picked the backup archive"
+current_file=`basename "$0"`
+if [ "$(tail -n1 $current_file)" == "__ARCHIVE_BELOW__" ]
+then
+	if [ $# -eq 0 ]
+	then
+		echo -e "${ORANGE}No arguments supplied, showing help${NC}"
+		help
+		exit 0;
+	fi
+	options=':bchsr:'
+	while getopts $options opt; do
+		case $opt in
+			b) 	
+				echo "Choose a product listed below then hit RETURN to continue:"
+				PS3='Select which product to backup -> '
+				select PRODUCT in "GRIDScaler" "EXAScaler" "Quit";
+				do 
+					case $PRODUCT in
+						"GRIDScaler")
+							echo -e "${GREEN}Backup option for GRIDScaler selected. Starting...${NC}"
+							gs_backup
+							echo -e ${NC}
+							exit 0;
+							;;
+						"EXAScaler")
+							echo -e "${GREEN}Backup option for GRIDScaler selected. Starting... (Under construction, will do nothing)${NC}"
+							es_backup
+							echo -e ${NC}
+							exit 0;
+							;;
+						"Quit")
+							echo -e "${ORANGE}Exiting...${NC}"
+							exit 0;
+							;;
+						*)
+							echo -e "${RED}Invalid option or no option specified${NC}"
+							exit 1;
+							;;
+					esac
+				done
 				echo -e ${NC}
+				exit 0;
+				;;
+			h) 
+				help; 
+				echo -e ${NC}
+				exit 0
+				;;
+			r)
+				# Identify ES or GS archive
+				echo -e "${GREEN}Restore option selected. Using $OPTARG"
+				echo -e "Validating backup integrity..."
+				echo -e ${NC}
+				if [ ! -f $OPTARG ]; 
+				then
+					echo -e "${RED}File does not exist! Make sure you are using the right file.${NC}";
+					exit 1;
+				fi
+				if ($(gunzip -c $OPTARG | tar t > /dev/null));
+				then
+					# Check for 'es' in filename
+					if $(echo $OPTARG | grep -q esbackup)
+					then
+						echo -e "${GREEN}File validated! Detected EXAScaler backup.${NC}"
+						echo "es_restore here"
+					# Check for 'gs' or 'backup' in filename. 
+					# 'backup' is included for backward compatibility 
+					# with previous version of the script
+					elif $(echo $OPTARG | grep -q 'gsbackup\|backup')
+					then
+						echo -e "${GREEN}File validated! Detected GRIDScaler backup.${NC}"
+						gs_restore $OPTARG
+					else
+						echo -e "${RED}Cannot determine product. Make sure you are using the archive generated by the backup process. Consult with DDN Support when in doubt."
+					fi
+				else
+					echo -e "${RED}Wrong file type or backup is corrupted! Make sure you picked the backup archive"
+					echo -e ${NC}
 				
-			fi
-			echo -e ${NC}
-			exit 0;
-			;;
-		s)
-			echo -e "${GREEN}SSH Key scan option selected.";
-			sshkeyscan
-			echo -e ${NC}
-			exit 0;
-			;;
-		c)
-			echo -e "${GREEN}Cleanup action selected.";
-			cleanup
-			echo -e ${NC}
-			exit 0;
-			;;
-		o)
-			echo -e "${GREEN}Revert action selected.";
-			revert
-			echo -e ${NC}
-			exit 0;
-			;;
-		:) 
-			echo -e "${ORANGE}Missing archive name to restore from"; 
-			echo -e ${NC}
-			exit 1
-			;;
-		\?) 
-			echo -e "${ORANGE}Unrecognized option, use -h for help"; 
-			echo -e ${NC}
-			exit 0
-			;;
-	esac
-done
+				fi
+				echo -e ${NC}
+				exit 0;
+				;;
+			s)
+				echo -e "${GREEN}SSH Key scan option selected.";
+				sshkeyscan
+				echo -e ${NC}
+				exit 0;
+				;;
+			c)
+				echo -e "${GREEN}Cleanup action selected.";
+				cleanup
+				echo -e ${NC}
+				exit 0;
+				;;
+			o)
+				echo -e "${GREEN}Revert action selected.";
+				revert
+				echo -e ${NC}
+				exit 0;
+				;;
+			:) 
+				echo -e "${ORANGE}Missing archive name to restore from"; 
+				echo -e ${NC}
+				exit 1
+				;;
+			\?) 
+				echo -e "${ORANGE}Unrecognized option, use -h for help"; 
+				echo -e ${NC}
+				exit 0
+				;;
+		esac
+	done
+else 
+	echo -e "${GREEN}Self-extract detected.${NC}"
+	sfx_gs_restore
+fi
+exit 0
+
+__ARCHIVE_BELOW__
