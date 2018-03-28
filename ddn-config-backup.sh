@@ -303,6 +303,7 @@ function gs_backup {
     echo -e "${YELLOW}Cleaning up and check for corruption...${NC}"
     tar -tzf /$dir/$nodename-gsbackup-$start_time.gz 
     tar -tzf /$dir/$nodename-doconly-$start_time.gz
+	printf "\n\n"
 	echo "Choose an option listed below then hit RETURN to continue:"
 	OPTION2='Select option -> '
 	select OPTION in "Create backup archive" "Create self-extracting archive";
@@ -311,7 +312,7 @@ function gs_backup {
 			"Create backup archive")
 				echo -e "${GREEN}Backup archive option for GRIDScaler selected...${NC}"
 				echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.gz${NC}"
-				echo -e "${ORANGE}IMPORTANT! Run ""mmsdrrestore -p <working NSD server>"" to restore GPFS config${NC}"
+				echo -e "${ORANGE}IMPORTANT! Run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config${NC}"
 				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
 				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
@@ -325,7 +326,7 @@ function gs_backup {
 				sfx_maker $dir
 				rm -f /$dir/$nodename-gsbackup-$start_time.gz
 				echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.ddnx${NC}"
-				echo -e "${ORANGE}IMPORTANT! Run ""mmsdrrestore -p <working NSD server>"" to restore GPFS config${NC}"
+				echo -e "${ORANGE}IMPORTANT! Run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config${NC}"
 				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.ddnx\"\n${NC}"
 				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
@@ -336,7 +337,7 @@ function gs_backup {
 				echo -e "${RED}Invalid option or no option specified. Default to option 1...${NC}"
 				echo -e "${GREEN}Backup archive option for GRIDScaler selected...${NC}"
 				echo -e "${GREEN}All done! ${NC}Backup can be found at ${YELLOW}$dir/$nodename-gsbackup-$start_time.gz${NC}"
-				echo -e "${ORANGE}IMPORTANT! Run ""mmsdrrestore -p <working NSD server>"" to restore GPFS config${NC}"
+				echo -e "${ORANGE}IMPORTANT! Run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config${NC}"
 				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
 				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
