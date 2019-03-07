@@ -164,6 +164,12 @@ function ddn_backup() {
     echo -e "${YELLOW}Backing up DDN config...${NC}"
     # cp -r --parents /etc/ddn/*.conf $backup_dir # RHEL 7.4 compatibility issue
     cp -r --parents /opt/ddn/bin/tune_devices.sh $backup_dir
+	mkdir /tmp/backup_dropbox
+	echo -e "${ORANGE}A dropbox has been created at /tmp/backup_dropbox. Open a new SSH session and copy any files you want to back up here.${NC}" 
+	echo -e "${ORANGE}All files and directories in this dropbox will be restored to /tmp/backup_dropbox after the reimage."
+	echo -e "${ORANGE}If you do not have any file to backup or when you are done, press any key to continue...${NC}"
+	read -n1 -r key
+	cp -r --parents /tmp/backup_dropbox $backup_dir
  } #ddn_backup
 
 
@@ -719,8 +725,16 @@ then
 					case $PRODUCT in
 						"GRIDScaler")
 							echo -e "${GREEN}Backup option for GRIDScaler selected. Starting...${NC}"
-							gs_backup
-							echo -e ${NC}
+							echo -e "${ORANGE}Please note that if you have any data management policy for GPFS, it will not be backed up unless it is stored in the dropbox.${NC}"
+							echo -e "${ORANGE}Backup dropbox will be created later in the process, a prompt will let you know when to backup your extra files and directories${NC}"
+							echo -e "${GREEN}Please type 'yes' to acknowledge this notice: ${NC}"
+							read -r response
+							if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+							then
+								gs_backup
+							else
+								echo -e ${NC}
+							fi
 							exit 0;
 							;;
 						"EXAScaler")
