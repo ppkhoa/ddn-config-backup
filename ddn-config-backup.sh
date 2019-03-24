@@ -321,7 +321,7 @@ function gs_backup {
 				echo -e "${ORANGE}IMPORTANT! Run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config${NC}"
 				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash ddn-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
-				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler upgrade/reinstall.${NC}"
 				echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
 				echo -e ${NC}
 				exit 0;
@@ -335,7 +335,7 @@ function gs_backup {
 				echo -e "${ORANGE}IMPORTANT! Run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config${NC}"
 				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash <path-to-file>/$nodename-gsbackup-$start_time.ddnx\"\n${NC}"
-				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler upgrade/reinstall.${NC}"
 				echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
 				exit 0;
 				;;
@@ -346,7 +346,7 @@ function gs_backup {
 				echo -e "${ORANGE}IMPORTANT! Run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config${NC}"
 				echo -e "${NC}For reference only data (not used for restore), it can be found at ${YELLOW}$dir/$nodename-doconly-$start_time.gz${NC}"
 				printf "\nTo restore after the upgrade/reinstall, use ${YELLOW}\"bash ddn-config-backup.sh -r <path-to-file>/$nodename-gsbackup-$start_time.gz\"\n${NC}"
-				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler 4.0 upgrade/reinstall.${NC}"
+				echo -e "${ORANGE}Remember to copy both files listed above to a different node before performing GRIDScaler upgrade/reinstall.${NC}"
 				echo -e "${ORANGE}Do not change the filename! The restore script depends on it.${NC}"
 				echo -e ${NC}
 				exit 0;
