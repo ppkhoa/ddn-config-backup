@@ -678,7 +678,7 @@ function cleanup {
 #
 function sshkeyscan {
 	echo -e "${YELLOW}Grabbing IPs and hostnames from /etc/hosts...${NC}"
-	awk '{for(i=1;i<=NF;i++) print $i }' /etc/hosts | sort | uniq > sshkeyhosts.txt # For every line in the hosts file, get IP address and all hostname, sort and filter duplicates
+	egrep -v '^\s*#' /etc/hosts | sed -e 's/#.*//' | awk '{for(i=1;i<=NF;i++) print $i }' | sort | uniq > sshkeyhosts.txt # For every line in the hosts file, get IP address and all hostname, sort and filter duplicates
 	echo -e "${YELLOW}Backing up existing known_hosts..."
 	[[ -e /root/.ssh/known_hosts ]] && (mv /root/.ssh/known_hosts /root/.ssh/known_hosts.bak)
 	echo -e "${YELLOW}Scanning all hosts for SSH host keys...${NC}"
