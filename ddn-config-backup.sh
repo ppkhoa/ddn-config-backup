@@ -559,6 +559,7 @@ function gs_restore {
 	sshkeyscan
 	printf "${YELLOW}Cleaning up...\n${NC}"
 	echo -e "${GREEN}Reboot the node to apply the settings.${NC}"
+	echo -e "${ORANGE}IMPORTANT! After reboot run \"mmsdrrestore -p <working NSD server>\" to restore GPFS config\n${NC}"
 	printf "\nIf you received any mv error, check the source "
 	printf "to confirm it exist and make sure you only run the restore once.\n\n"
 }
