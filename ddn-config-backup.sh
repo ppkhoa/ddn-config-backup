@@ -555,8 +555,6 @@ function gs_restore {
 	(set -x; timedatectl set-timezone $(cat /etc/sysconfig/clock | grep ZONE | sed 's/ /_/g; s/^[^=]*=//g; s/"//g'))
 	echo -e "${YELLOW}Fixing host keys permissions...${NC}"
 	chmod 600 /etc/ssh/ssh_host_*
-	echo -e "${YELLOW}Performing hosts scan...${NC}"
-	sshkeyscan
 	printf "${YELLOW}Cleaning up...\n${NC}"
 	echo -e "${GREEN}Reboot the node to apply the settings.${NC}"
 	printf "\nIf you received any mv error, check the source "
