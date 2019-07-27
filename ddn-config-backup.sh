@@ -1,14 +1,14 @@
 #! /bin/bash
 
 # This script will backup network and Linux configuration in preparation for
-# GRIDScaler 4.x upgrade/reinstall or EXAScaler 3.0 upgrade/reinstall.
+# GRIDScaler 4.x upgrade/reinstall or EXAScaler 3.x/4.x upgrade/reinstall.
 # This script is meant to run on each GRIDScaler/EXAScaler server.
 # The current version of the script supports the standard GS/ES installation, 
 # it does not back up configurations for applications not included with original GS/ES installation.
 
 # For support/feedback with the script, contact Khoa Pham (kpham@ddn.com).
 
-# Changelogs has been moved to GitHub wiki: https://github.com/ppkhoa/ddn-config-backup/wiki
+# Changelogs has been moved to GitHub wiki: https://github.com/ppkhoa/ddn-config-backup/wiki 
 
 
 ###############################################################################
