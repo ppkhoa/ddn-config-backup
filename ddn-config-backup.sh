@@ -6,7 +6,7 @@
 # The current version of the script supports the standard GS/ES installation, 
 # it does not back up configurations for applications not included with original GS/ES installation.
 
-# For support/feedback with the script, contact Khoa Pham (kpham@ddn.com)
+# For support/feedback with the script, contact Khoa Pham (kpham@ddn.com).
 
 # Changelogs has been moved to GitHub wiki: https://github.com/ppkhoa/ddn-config-backup/wiki 
 
