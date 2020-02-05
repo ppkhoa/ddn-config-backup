@@ -81,10 +81,26 @@ function net_backup() {
         if [ -e "$file" ]
         then
                 cp -r --parents /etc/sysconfig/network-scripts/"$file" "$backup_dir"
+				cp -r --parents /etc/sysconfig/network-scripts/"$file" "$doc_dir"
                 break
         fi
     done
-
+	
+	# Suggestions from Case 131194
+	## Start
+	for file in /etc/sysconfig/network-scripts/rule-*
+	do
+        if [ -e "$file" ]
+        then
+                cp -r --parents /etc/sysconfig/network-scripts/"$file" "$backup_dir"
+				cp -r --parents /etc/sysconfig/network-scripts/"$file" "$doc_dir"
+                break
+        fi
+    done
+	
+	[[ -e /etc/iproute2/rt_tables ]] && (cp -r --parents /etc/iproute2/rt_tables "$backup_dir")
+	## End
+	
     [[ -e /etc/sysconfig/iptables ]] && (cp -r --parents /etc/sysconfig/iptables "$backup_dir")
 
     ip link > "$doc_dir"/ip_link.out 2>&1
