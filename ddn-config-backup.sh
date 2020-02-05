@@ -97,8 +97,6 @@ function net_backup() {
                 break
         fi
     done
-	
-	[[ -e /etc/iproute2/rt_tables ]] && (cp -r --parents /etc/iproute2/rt_tables "$backup_dir")
 	## End
 	
     [[ -e /etc/sysconfig/iptables ]] && (cp -r --parents /etc/sysconfig/iptables "$backup_dir")
