@@ -287,7 +287,7 @@ function dev_backup() {
 #
 function sfx_maker {
 	dir=$1
-	cat "$dir"/ddn-config-backup.sh "$dir"/"$nodename"-gsbackup-"$start_time".gz > /"$dir"/"$nodename"-gsbackup-"$start_time".ddnx
+	cat "$dir"/"$0" "$dir"/"$nodename"-gsbackup-"$start_time".gz > /"$dir"/"$nodename"-gsbackup-"$start_time".ddnx
 }
 
 ###############################################################################
