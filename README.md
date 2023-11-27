@@ -23,7 +23,7 @@ This script used the following: ssh-keyscan, tar and awk. Make sure you have tho
 ## **Support**
 If you discovered a bug, let me know through email at `kpham` at `ddn` dot `com` or my personal email `ppkhoa` at `gmail` dot `com`.
 
-If you came upon this script, while using GRIDScaler and looking to upgrade, contact DDN Support (`support` at `ddn` dot `com`)
+If you came upon this script, while using GRIDScaler and looking to upgrade, contact DDN Support (`support` at `ddn` dot `io`)
 
 ## **Disclaimer**
 DataDirect Networks, DDN, EXAScaler and GRIDScaler are trademarks of DataDirect Networks
