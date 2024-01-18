@@ -18,7 +18,7 @@ bash ddn-config-backup [-bchs] [-r filename]
 
 ```
 ## **Under the Hood**
-This script used the following: ssh-keyscan, tar and awk. Make sure you have those available before running the script.
+This script used the following: `ssh-keyscan`, `tar` and `awk`. Make sure you have those available before running the script.
 
 ## **Support**
 If you discovered a bug, let me know through email at `kpham` at `ddn` dot `com` or my personal email `ppkhoa` at `gmail` dot `com`.
